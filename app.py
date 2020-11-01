@@ -45,20 +45,65 @@ def clean_data():
             )
 
 def view_entry(id):
-    products = Product.select().where(Product.product_id == id)
-    for product in products:
-        print("Name: " + product.product_name)
-        print("Price: " + str(product.product_price) + " Cents")
-        print("Quantity: " + str(product.product_quantity))
-        print("Date Updated: " + str(product.date_updated))
+    try:
+        max_length = Product.select()
+        if int(id) > int(len(max_length)):
+            raise ValueError
+        elif  id.isdigit() == False:
+            raise ValueError
+        products = Product.select().where(Product.product_id == id)
+        for product in products:
+            print("Name: " + product.product_name)
+            print("Price: " + str(product.product_price) + " Cents")
+            print("Quantity: " + str(product.product_quantity))
+            print("Date Updated: " + str(product.date_updated))
+            return
+    except ValueError:
+        print("ID not found, please enter a valid product ID")
 
 
 def add_entry():
-    name = input("Please Enter Product Name: ")
-    price = input("Please Enter Product Price: ")
-    quantity = input("Please Enter Product Quantity: ")
-    date = datetime.datetime.now().date().strftime("%m/%d/%Y")
-    Product.create(product_name=name, product_price=price, product_quantity=quantity, date_updated=date)
+    while True:
+        try:
+            entry = input("Please Enter Product Name: ")
+            names = Product.select().order_by(Product.product_name)
+            for name in names:
+                if name.product_name.lower() == entry.lower():
+                    raise IntegrityError
+                    break
+                price = input("Please Enter Product Price: ")
+                if price.isdigit() == False:
+                    print("Price not valid")
+                    break
+                quantity = input("Please Enter Product Quantity: ")
+                if quantity.isdigit() == False:
+                    print("Quantity not valid")
+                    break
+                date = datetime.datetime.now().date().strftime("%m/%d/%Y")
+                Product.create(product_name=entry, product_price=price, product_quantity=quantity, date_updated=date)
+                return
+        except IntegrityError:
+            print("\nThat item already exists within the database")
+            while True:
+                q = input("\nWould you like to update {}, (Y/N)> ".format(entry))
+                if q.lower() == 'n':
+                    return  # returns to main menu
+                elif q.lower() == 'y':
+                    """This grabs the data from the database and updates it"""
+                    update_entry = Product.get(Product.product_name == entry)
+                    price = input("\nPlease Enter Product Price: ")
+                    quantity = input("\nPlease Enter Product Quantity: ")
+                    date = datetime.datetime.now().date().strftime("%m/%d/%Y")
+                    update_entry.product_price = price
+                    update_entry.product_quantity = quantity
+                    update_entry.date_updated = date
+                    update_entry.save()
+                    print("\nUpdates Saved Successfully")
+                    return
+                elif q.lower() != 'y' or 'n':
+                    print("Please enter a valid value")
+                
+    
 
 
 
