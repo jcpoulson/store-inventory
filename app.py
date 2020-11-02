@@ -59,10 +59,12 @@ def view_entry(id):
             print("Date Updated: " + str(product.date_updated))
             return
     except ValueError:
-        print("ID not found, please enter a valid product ID")
+        print("Invalid value entered, please enter a valid ID")
 
 
 def add_entry():
+    """This function looks like it's alot but it really isn't. This function asks for a name, price and quantity and then simply
+    creates a new database entry with the given data. Where this function gets messy is the handling of potential errors"""
     while True:
         try:
             entry = input("Please Enter Product Name: ")
@@ -70,18 +72,17 @@ def add_entry():
             for name in names:
                 if name.product_name.lower() == entry.lower():
                     raise IntegrityError
-                    break
-                price = input("Please Enter Product Price: ")
-                if price.isdigit() == False:
-                    print("Price not valid")
-                    break
-                quantity = input("Please Enter Product Quantity: ")
-                if quantity.isdigit() == False:
-                    print("Quantity not valid")
-                    break
-                date = datetime.datetime.now().date().strftime("%m/%d/%Y")
-                Product.create(product_name=entry, product_price=price, product_quantity=quantity, date_updated=date)
-                return
+            price = input("Please Enter Product Price: ")
+            if price.isdigit() == False:
+                print("Price not valid")
+                raise ValueError
+            quantity = input("Please Enter Product Quantity: ")
+            if quantity.isdigit() == False:
+                print("Quantity not valid")
+                raise ValueError
+            date = datetime.datetime.now().date().strftime("%m/%d/%Y")
+            Product.create(product_name=entry, product_price=price, product_quantity=quantity, date_updated=date)
+            return
         except IntegrityError:
             print("\nThat item already exists within the database")
             while True:
@@ -92,7 +93,13 @@ def add_entry():
                     """This grabs the data from the database and updates it"""
                     update_entry = Product.get(Product.product_name == entry)
                     price = input("\nPlease Enter Product Price: ")
+                    if price.isdigit() == False:
+                        print("Price not valid")
+                        break
                     quantity = input("\nPlease Enter Product Quantity: ")
+                    if quantity.isdigit() == False:
+                        print("Quantity not valid")
+                        break
                     date = datetime.datetime.now().date().strftime("%m/%d/%Y")
                     update_entry.product_price = price
                     update_entry.product_quantity = quantity
@@ -102,7 +109,8 @@ def add_entry():
                     return
                 elif q.lower() != 'y' or 'n':
                     print("Please enter a valid value")
-                
+        except ValueError:
+            print("Please Enter a Valid Value") 
     
 
 
@@ -137,7 +145,6 @@ def display_menu():
             print("="*len(welcome)+'\n')
         elif choice == 'v':
             print('\n'+"="*len(welcome))
-            # Add an error catcher
             select = input("Please enter a Product ID > ")
             view_entry(select)
             print("="*len(welcome))
@@ -153,6 +160,6 @@ def display_menu():
 
 if __name__ == '__main__':
     db.connect()
-    db.create_tables([Product], safe=True) # safe=True means or at least should be that, it doesnt allow for multiple Product tables to be created
+    db.create_tables([Product], safe=True)
     clean_data()
     display_menu()
